@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".", // Specifies the base directory for resolving non-relative module names
+    "paths": {
+      "@utils/*": [
+        "src/utils/*"
+      ], // Alias for the utils folder
+      "@components/*": [
+        "src/components/*"
+      ], // Alias for the components folder
+      "@pages/*": [
+        "src/pages/*"
+      ], // Alias for the pages folder
+      "@styles/*": [
+        "src/styles/*"
+      ], // Alias for the styles folder
+      "@assets/*": [
+        "src/assets/*"
+      ], // Alias for the assets folder
+      // Alias for the styles folder
+      "@src/*": [
+        "src/*"
+      ], // Alias for the img folder
+      "@img/*": [
+        "src/img/*"
+      ]
+    }
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
+}
