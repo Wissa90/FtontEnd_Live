@@ -3,8 +3,8 @@ import { Box, Flex, Icon, Link, Text } from "@chakra-ui/react";
 import { PropsWithChildren } from "react";
 import { FaChevronLeft } from "react-icons/fa";
 import { Link as RouterLink } from "react-router-dom";
-import FixedPlugin from "../../../horizon-ai/components/fixedPlugin/FixedPlugin";
 import Footer from "../../../horizon-ai/components/footer/FooterAuthDefault";
+import FixedPlugin from "../../../horizon-ai/components/fixedPlugin/FixedPlugin";
 
 interface DefaultAuthLayoutProps extends PropsWithChildren {
   children: JSX.Element;

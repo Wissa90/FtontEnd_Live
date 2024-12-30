@@ -18,7 +18,7 @@ import { Scrollbars } from "react-custom-scrollbars-2";
 
 import { IoMenuOutline } from "react-icons/io5";
 import { IRoute } from "../../types/navigation";
-import { isWindowAvailable } from "../../utils/navigation";
+import { isWindowAvailable } from "../../../domain/chat/utils/navigation";
 import { renderThumb, renderTrack, renderView } from "../scrollbar/Scrollbar";
 import Content from "./components/Content";
 

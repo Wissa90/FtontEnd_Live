@@ -1,20 +1,37 @@
 import { Box } from "@chakra-ui/react";
-import { ReactNode } from "react";
+import { ReactNode, useState, useEffect } from "react";
+import { useDisclosure } from "@chakra-ui/react";
+import { useLocation } from "react-router-dom";
 import Footer from "../../../horizon-ai/components/footer/FooterAuthDefault";
 import Sidebar from "../../../horizon-ai/components/sidebar/Sidebar";
 import routes from "../../../horizon-ai/routes";
+import Navbar from "./navbar/NavbarAdmin";
+import { getActiveRoute, getActiveNavbar } from '../utils/navigation';
 
 type ChatLayoutProps = {
   children: ReactNode;
   conversations: string[];
 };
 
-const ChatLayout = ({ children, conversations }: ChatLayoutProps) => {
+const ChatLayout = ({ children, conversations = [] }: ChatLayoutProps) => {
+  const location = useLocation();
+  const pathname = location?.pathname || '/'; // Fallback to '/' if undefined
+  const [apiKey, setApiKey] = useState('');
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  useEffect(() => {
+    const initialKey = localStorage.getItem('apiKey');
+    if (initialKey?.includes('sk-') && apiKey !== initialKey) {
+      setApiKey(initialKey);
+    }
+  }, [apiKey]);
+
+
   return (
     <Box>
       <Sidebar
-        setApiKey={"some-api-key"}
-        routes={routes}
+        setApiKey={apiKey}
+        routes={routes || []} // Fallback to an empty array if routes are undefined
         conversations={conversations}
       />
       <Box
@@ -32,6 +49,16 @@ const ChatLayout = ({ children, conversations }: ChatLayoutProps) => {
         transitionProperty="top, bottom, width"
         transitionTimingFunction="linear, linear, ease"
       >
+        <Box>
+          <Navbar
+            setApiKey={setApiKey}
+            onOpen={onOpen}
+            logoText={"Horizon UI Dashboard PRO"}
+            brandText={getActiveRoute(routes, location.pathname)}
+            secondary={getActiveNavbar(routes, location.pathname)}
+          />
+        </Box>
+
         <Box
           mx="auto"
           p={{ base: "20px", md: "30px" }}

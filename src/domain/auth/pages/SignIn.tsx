@@ -253,7 +253,7 @@ function SignIn() {
             <Text color={textColorDetails} fontWeight="500" fontSize="sm">
               Not registered yet?
             </Text>
-            <Link href="/others/register" py="0px" lineHeight={"120%"}>
+            <Link href="/auth/sign-up" py="0px" lineHeight={"120%"}>
               <Text
                 color={textColorBrand}
                 fontSize="sm"

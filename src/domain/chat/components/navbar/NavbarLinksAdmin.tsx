@@ -17,9 +17,9 @@ import {
 } from "@chakra-ui/react";
 import { IoMdMoon, IoMdSunny } from "react-icons/io";
 import { MdInfoOutline } from "react-icons/md";
-import APIModal from "../apiModal";
-import { SearchBar } from "../search";
-import { SidebarResponsive } from "../sidebar/Sidebar";
+import APIModal from "../../../../horizon-ai/components/apiModal";
+import { SearchBar } from "../../../../horizon-ai/components/search";
+import { SidebarResponsive } from "../../../../horizon-ai/components/sidebar/Sidebar";
 
 export default function HeaderLinks(props: {
   secondary: boolean;

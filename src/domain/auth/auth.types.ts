@@ -10,8 +10,7 @@ export type Register = {
   first_name: string;
   last_name: string;
   profile: {
-    birth_date: Date; // Match the expected field name
-    location: ""; // Default or user-provided value
+    birth_date: string; // Match the expected field name
     current_grade: number; // Ensure grade is sent as a number
     educational_stage: string;
     parent_email: string;

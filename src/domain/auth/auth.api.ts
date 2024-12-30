@@ -37,13 +37,13 @@ api.interceptors.request.use((config) => {
 
 const authApi = {
   loginUser: async (credentials: LoginCredentials) => {
-    const response = await api.post("/token", credentials);
+    const response = await api.post("/token/", credentials);
     localStorage.setItem("token", response.data.access);
     return response.data.access;
   },
   register: async (credentials: Register) => {
     // Use axios directly to bypass the interceptor
-    const response = await axios.post(`${API_URL}/register`, credentials, {
+    const response = await axios.post(`${API_URL}/register/`, credentials, {
       headers: {
         "Content-Type": "application/json", // Only include the content type
       },
