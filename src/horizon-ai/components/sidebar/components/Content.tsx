@@ -12,7 +12,7 @@ import {
   MenuList,
   Stack,
   Text,
-  useColorModeValue,
+  useColorModeValue
 } from "@chakra-ui/react";
 //   Custom components
 import { PropsWithChildren } from "react";
@@ -28,17 +28,20 @@ import Brand from "./Brand";
 import SidebarCard from "./SidebarCard";
 import avatar4 from "/img/avatars/avatar4.png";
 
+import { Conversation } from "src/domain/chat/chat.types";
 import { RoundedChart } from "../../icons/Icons";
 // FUNCTIONS
 
 interface SidebarContent extends PropsWithChildren {
   routes: IRoute[];
-  conversations: string[];
+  conversations: Conversation[];
+  selectedId?: number;
   [x: string]: any;
+  setSelected: (conversation: Conversation) => void;
 }
 
 function SidebarContent(props: SidebarContent) {
-  const { routes, setApiKey } = props;
+  const { setApiKey, conversations, selectedId, setSelected } = props;
   const textColor = useColorModeValue("navy.700", "white");
   const borderColor = useColorModeValue("gray.200", "whiteAlpha.300");
   const bgColor = useColorModeValue("white", "navy.700");
@@ -72,10 +75,10 @@ function SidebarContent(props: SidebarContent) {
           flexDirection="column"
           gap="2.5"
         >
-          {props.conversations.map((_) => (
-            <Card>
+          {conversations.map((_) => (
+            <Card key={_.id} style={{ 'cursor': 'pointer', ...(_.id === selectedId ? { border: '1px solid blue' } : {}) }} onClick={() => setSelected(_)}>
               <CardBody>
-                <Text>{_}</Text>
+                <Text>{_.name}</Text>
               </CardBody>
             </Card>
           ))}

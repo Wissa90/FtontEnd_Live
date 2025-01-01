@@ -1,19 +1,21 @@
-import { Box } from "@chakra-ui/react";
-import { ReactNode, useState, useEffect } from "react";
-import { useDisclosure } from "@chakra-ui/react";
+import { Box, useDisclosure } from "@chakra-ui/react";
+import { ReactNode, useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import Footer from "../../../horizon-ai/components/footer/FooterAuthDefault";
 import Sidebar from "../../../horizon-ai/components/sidebar/Sidebar";
 import routes from "../../../horizon-ai/routes";
+import { Conversation } from "../chat.types";
+import { getActiveNavbar, getActiveRoute } from '../utils/navigation';
 import Navbar from "./navbar/NavbarAdmin";
-import { getActiveRoute, getActiveNavbar } from '../utils/navigation';
 
 type ChatLayoutProps = {
   children: ReactNode;
-  conversations: string[];
+  conversations: Conversation[];
+  selectedId?: number;
+  setSelected: (conversation: Conversation) => void;
 };
 
-const ChatLayout = ({ children, conversations = [] }: ChatLayoutProps) => {
+const ChatLayout = ({ children, conversations, selectedId, setSelected }: ChatLayoutProps) => {
   const location = useLocation();
   const pathname = location?.pathname || '/'; // Fallback to '/' if undefined
   const [apiKey, setApiKey] = useState('');
@@ -33,6 +35,8 @@ const ChatLayout = ({ children, conversations = [] }: ChatLayoutProps) => {
         setApiKey={apiKey}
         routes={routes || []} // Fallback to an empty array if routes are undefined
         conversations={conversations}
+        selectedId={selectedId}
+        setSelected={setSelected}
       />
       <Box
         pt={{ base: "60px", md: "100px" }}
@@ -77,3 +81,4 @@ const ChatLayout = ({ children, conversations = [] }: ChatLayoutProps) => {
 };
 
 export { ChatLayout };
+

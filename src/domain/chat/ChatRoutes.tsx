@@ -5,9 +5,10 @@ import { Chat } from "./pages/Chat";
 const ChatRoutes = () => (
   <Routes>
     <Route element={<PrivateRoute />}>
-      <Route path="/" element={<Chat />} />
+      <Route path="/:id?" element={<Chat />} />
     </Route>
   </Routes>
 );
 
 export { ChatRoutes };
+

@@ -17,19 +17,22 @@ import {
 import { Scrollbars } from "react-custom-scrollbars-2";
 
 import { IoMenuOutline } from "react-icons/io5";
-import { IRoute } from "../../types/navigation";
+import { Conversation } from "src/domain/chat/chat.types";
 import { isWindowAvailable } from "../../../domain/chat/utils/navigation";
+import { IRoute } from "../../types/navigation";
 import { renderThumb, renderTrack, renderView } from "../scrollbar/Scrollbar";
 import Content from "./components/Content";
 
 export interface SidebarProps extends PropsWithChildren {
   routes: IRoute[];
-  conversations: string[];
+  conversations: Conversation[];
+  selectedId?: number;
   [x: string]: any;
+  setSelected: (conversation: Conversation) => void;
 }
 
 const Sidebar = (props: SidebarProps) => {
-  const { routes, setApiKey } = props;
+  const { routes, setApiKey, conversations, selectedId, setSelected } = props;
   // this is for the rest of the collapses
   const variantChange = "0.2s linear";
   const shadow = useColorModeValue(
@@ -69,7 +72,9 @@ const Sidebar = (props: SidebarProps) => {
           <Content
             setApiKey={setApiKey}
             routes={routes}
-            conversations={props.conversations}
+            conversations={conversations}
+            selectedId={selectedId}
+            setSelected={setSelected}
           />
         </Scrollbars>
       </Box>
@@ -133,7 +138,7 @@ export function SidebarResponsive(props: { routes: IRoute[] }) {
               renderThumbVertical={renderThumb}
               renderView={renderView}
             >
-              <Content routes={routes} conversations={[]} />
+              <Content routes={routes} conversations={[]} setSelected={() => { }} />
             </Scrollbars>
           </DrawerBody>
         </DrawerContent>

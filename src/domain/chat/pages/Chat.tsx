@@ -1,32 +1,38 @@
 "use client";
 import {
-  Box,
   Button,
   Flex,
   Icon,
   Img,
   Input,
   Text,
-  useColorModeValue,
+  useColorModeValue
 } from "@chakra-ui/react";
 import { useEffect, useRef, useState } from "react";
-import { MdAutoAwesome, MdBolt, MdEdit, MdPerson, MdKeyboardArrowDown } from "react-icons/md";
-import MessageBoxChat from "../../../horizon-ai/components/MessageBoxChat";
-import { ChatLayout } from "../components/ChatLayout";
+import { MdAutoAwesome, MdKeyboardArrowDown, MdPerson } from "react-icons/md";
+import { useNavigate, useParams } from "react-router-dom";
 import {
-  sendMessage,
-  getConversations,
   createConversation,
-  getMessages
+  getConversations,
+  getMessages,
+  sendMessage
 } from '../chat.api';
+import { Conversation, Message } from "../chat.types";
+import { ChatLayout } from "../components/ChatLayout";
 
 const Chat = () => {
-  // State management
+  const { id: selectedConversationIdParam } = useParams();
+  const navigate = useNavigate();
+
+
   const [inputCode, setInputCode] = useState("");
   const [loading, setLoading] = useState(false);
-  const [conversations, setConversations] = useState<{ id: string; name: string }[]>([]);
-  const [currentConversation, setCurrentConversation] = useState<{ id: string; name: string } | null>(null);
-  const [messages, setMessages] = useState<{ id: string; text: string; role: string; timestamp: string }[]>([]);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<number | undefined>(
+    selectedConversationIdParam ? Number(selectedConversationIdParam) : undefined
+  );
+
+  const [messages, setMessages] = useState<Message[]>([]);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   // Refs for scrolling
@@ -57,34 +63,20 @@ const Chat = () => {
 
   // Load conversations on mount
   useEffect(() => {
-    loadConversations();
+    getConversations().then(setConversations);
   }, []);
 
-  const loadConversations = async () => {
-    try {
-      const response = await getConversations();
-      setConversations(response.data);
-
-      // If there are conversations, load messages for the first one
-      if (response.data.length > 0) {
-        const firstConversation = response.data[0];
-        setCurrentConversation(firstConversation);
-        loadMessages(firstConversation.id);
-      }
-    } catch (error) {
-      console.error('Error loading conversations:', error);
+  useEffect(() => {
+    if (!selectedConversationId) {
+      return;
     }
-  };
 
-  const loadMessages = async (conversationId: string) => {
-    try {
-      const response = await getMessages(conversationId);
-      setMessages(response.data.messages);
-      scrollToBottom(true);
-    } catch (error) {
-      console.error('Error loading messages:', error);
-    }
-  };
+    getMessages(selectedConversationId)
+      .then(messages => {
+        setMessages(messages);
+        scrollToBottom(true);
+      });
+  }, []);
 
   const scrollToBottom = (immediate = false) => {
     const scrollAction = () => {
@@ -103,21 +95,7 @@ const Chat = () => {
     }
   };
 
-  const createNewConversation = async () => {
-    try {
-      const response = await createConversation({
-        name: `Chat ${new Date().toLocaleString()}`
-      });
-      setCurrentConversation(response);
-      setMessages([]); // Clear messages for new conversation
-      return response;
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-      throw error;
-    }
-  };
-
-  const handleTranslate = async () => {
+  const handleSubmit = async () => {
     if (!inputCode.trim()) {
       alert("Please enter your message.");
       return;
@@ -125,42 +103,50 @@ const Chat = () => {
 
     setLoading(true);
     try {
-      // Create new conversation if none exists
-      if (!currentConversation) {
-        const newConversation = await createNewConversation();
-        setCurrentConversation(newConversation);
+      const conversation = selectedConversationId ? conversations.find(_ => _.id === selectedConversationId)!! : await createConversation({
+        name: `Chat ${new Date().toLocaleString()}`
+      });
+
+      if (!selectedConversationId) {
+        // new conversation created
+        setConversations(current => [...current, conversation]);
+        setSelectedConversationId(conversation.id);
+        navigate(`/chat/${conversation.id}`, { replace: true });
+        setMessages([]);
       }
 
-      // Prepare form data
       const formData = new FormData();
-      if (currentConversation) {
-        formData.append('conversation_id', currentConversation.id);
-      }
+
+      formData.append('conversation_id', conversation.id.toString());
       formData.append('text', inputCode);
 
       // Add message to UI immediately for better UX
+      // TODO: replace with useOptimistic from react-19
+      const newMessageTempId = new Date().getTime();
+
       const tempUserMessage = {
-        id: `temp-${Date.now()}`,
-        text: inputCode,
-        role: 'user',
+        id: newMessageTempId,
+        ai_response: '',
+        user_question: inputCode,
         timestamp: new Date().toISOString()
       };
-      setMessages(prev => [...prev, tempUserMessage]);
 
-      // Clear input immediately
+      setMessages(prev => [...prev, tempUserMessage]);
       setInputCode("");
 
       // Send message
-      const response = await sendMessage(formData);
+      const aiResponse = (await sendMessage(formData)).details.text.response;
 
       // Add AI response to messages
-      const aiMessage = {
-        id: `ai-${Date.now()}`,
-        text: response.details.text.response,
-        role: 'assistant',
-        timestamp: new Date().toISOString()
-      };
-      setMessages(prev => [...prev, aiMessage]);
+      const updatedMessage = { ...tempUserMessage, ai_response: aiResponse };
+
+      setMessages(prev => prev.map(_ => {
+        if (_.id !== tempUserMessage.id) {
+          return _;
+        }
+
+        return updatedMessage
+      }));
 
       // Scroll to the bottom
       scrollToBottom();
@@ -193,7 +179,11 @@ const Chat = () => {
   }, []);
 
   return (
-    <ChatLayout conversations={conversations.map(conv => conv.name)}>
+    <ChatLayout conversations={conversations} selectedId={selectedConversationId} setSelected={conversation => {
+      setSelectedConversationId(conversation.id);
+      getMessages(conversation.id).then(setMessages);
+      navigate(`/chat/${conversation.id}`, { replace: true });
+    }}>
       <Flex
         w="100%"
         pt={{ base: "70px", md: "0px" }}
@@ -241,10 +231,10 @@ const Chat = () => {
           >
             {messages.map((message, index) => (
               <div
-                key={`${message.role}-${message.id || index}`}
+                key={message.id}
                 ref={index === messages.length - 1 ? lastMessageRef : null}
               >
-                {message.role === 'user' ? (
+                {message.user_question && (
                   <Flex w="100%" justify="flex-end" mb="10px">
                     <Flex maxW="80%" align="center">
                       <Flex
@@ -260,7 +250,7 @@ const Chat = () => {
                           fontSize={{ base: "sm", md: "md" }}
                           lineHeight={{ base: "24px", md: "26px" }}
                         >
-                          {message.text}
+                          {message.user_question}
                         </Text>
                       </Flex>
                       <Flex
@@ -278,25 +268,41 @@ const Chat = () => {
                         <Icon as={MdPerson} width="20px" height="20px" color={brandColor} />
                       </Flex>
                     </Flex>
-                  </Flex>
-                ) : (
+                  </Flex>)}
+
+                {message.ai_response && (
                   <Flex w="100%" justify="flex-start" mb="10px">
                     <Flex maxW="80%" align="center">
                       <Flex
                         borderRadius="full"
                         justify="center"
                         align="center"
-                        bg={"linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)"}
-                        me="20px"
+                        bg={"transparent"}
+                        border="1px solid"
+                        borderColor={borderColor}
+                        ms="20px"
                         h="40px"
                         minH="40px"
                         minW="40px"
                       >
-                        <Icon as={MdAutoAwesome} width="20px" height="20px" color="white" />
+                        <Icon as={MdAutoAwesome} width="20px" height="20px" color={brandColor} />
                       </Flex>
-                      <Box flexGrow={1} maxW="100%">
-                        <MessageBoxChat output={message.text} />
-                      </Box>
+                      <Flex
+                        p="22px"
+                        border="1px solid"
+                        borderColor={borderColor}
+                        borderRadius="14px"
+                        zIndex="2"
+                      >
+                        <Text
+                          color={textColor}
+                          fontWeight="600"
+                          fontSize={{ base: "sm", md: "md" }}
+                          lineHeight={{ base: "24px", md: "26px" }}
+                        >
+                          {message.ai_response}
+                        </Text>
+                      </Flex>
                     </Flex>
                   </Flex>
                 )}
@@ -342,7 +348,7 @@ const Chat = () => {
               onKeyPress={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleTranslate();
+                  handleSubmit();
                 }
               }}
             />
@@ -362,7 +368,7 @@ const Chat = () => {
                   bg: "linear-gradient(15.46deg, #4A25E1 26.3%, #7B5AFF 86.4%)",
                 },
               }}
-              onClick={handleTranslate}
+              onClick={handleSubmit}
               isLoading={loading}
             >
               Submit
@@ -375,3 +381,4 @@ const Chat = () => {
 };
 
 export { Chat };
+
