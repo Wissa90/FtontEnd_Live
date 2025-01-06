@@ -7,7 +7,7 @@ import {
 } from "./chat.types";
 
 // Base API URL
-const API_URL = "https://8f8c-156-208-8-108.ngrok-free.app/api";
+const API_URL = "https://1dbf-156-174-47-128.ngrok-free.app/api";
 
 // Create an Axios instance with default settings
 const api = axios.create({
@@ -51,7 +51,7 @@ export const createConversation = async (
 };
 
 // Delete a conversation
-export const deleteConversation = async (id: string): Promise<void> => {
+export const deleteConversation = async (id: number): Promise<void> => {
   return api.delete(`/conversations/conversations/${id}/`);
 };
 

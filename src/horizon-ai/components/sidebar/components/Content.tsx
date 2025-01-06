@@ -3,10 +3,9 @@
 import {
   Box,
   Button,
-  Card,
-  CardBody,
   Flex,
   Icon,
+  IconButton,
   Menu,
   MenuButton,
   MenuList,
@@ -16,20 +15,18 @@ import {
 } from "@chakra-ui/react";
 //   Custom components
 import { PropsWithChildren } from "react";
-import { FiLogOut } from "react-icons/fi";
+import { FiLogOut, FiPlusCircle, FiTrash2 } from "react-icons/fi";
 import { IoMdPerson } from "react-icons/io";
 import { LuHistory } from "react-icons/lu";
 import { MdOutlineManageAccounts, MdOutlineSettings } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { IRoute } from "../../../types/navigation";
-import APIModal from "../../apiModal";
 import { NextAvatar } from "../../image/Avatar";
-import Brand from "./Brand";
-import SidebarCard from "./SidebarCard";
 import avatar4 from "/img/avatars/avatar4.png";
 
 import { Conversation } from "src/domain/chat/chat.types";
-import { RoundedChart } from "../../icons/Icons";
+import { HorizonLogo, RoundedChart } from "../../icons/Icons";
+import { HSeparator } from "../../separator/Separator";
 // FUNCTIONS
 
 interface SidebarContent extends PropsWithChildren {
@@ -38,10 +35,12 @@ interface SidebarContent extends PropsWithChildren {
   selectedId?: number;
   [x: string]: any;
   setSelected: (conversation: Conversation) => void;
+  createConversation: () => void;
+  deleteConversation: (id: number) => void;
 }
 
 function SidebarContent(props: SidebarContent) {
-  const { setApiKey, conversations, selectedId, setSelected } = props;
+  const { conversations, selectedId, setSelected, createConversation, deleteConversation } = props;
   const textColor = useColorModeValue("navy.700", "white");
   const borderColor = useColorModeValue("gray.200", "whiteAlpha.300");
   const bgColor = useColorModeValue("white", "navy.700");
@@ -55,48 +54,109 @@ function SidebarContent(props: SidebarContent) {
     "none",
   );
   const gray = useColorModeValue("gray.500", "white");
+  const logoColor = useColorModeValue("navy.700", "white");
+
   // SIDEBAR
   return (
     <Flex
       direction="column"
       height="100%"
-      pt="20px"
-      pb="26px"
       borderRadius="30px"
       maxW="285px"
-      px="20px"
+    // px="20px"
+    // pt="20px"
     >
-      <Brand />
-      <Stack direction="column" mb="auto" mt="8px">
+      <Flex alignItems="center" flexDirection="column">
+        <IconButton
+          onClick={createConversation}
+          position="absolute"
+          right={1}
+          top={0}
+          aria-label="New Conversation"
+        >
+          <FiPlusCircle fontSize="25px" />
+        </IconButton>
+
+        <HorizonLogo h="26px" w="146px" my="30px" color={logoColor} />
+        <HSeparator mb="20px" w="284px" />
+      </Flex>
+      <Stack direction="column" mb="auto" mt="8px" >
         <Box
+          overflowY="auto"
           ps="0px"
           pe={{ md: "0px", "2xl": "0px" }}
           display="flex"
           flexDirection="column"
-          gap="2.5"
+          gap="2"
+          maxH="70vh"
+          sx={{
+            "&::-webkit-scrollbar": {
+              width: "12px", // Adjust width of scrollbar
+            },
+            "&::-webkit-scrollbar-track": {
+              background: "#f1f1f1", // Background color of track
+            },
+            "&::-webkit-scrollbar-thumb": {
+              background: "#888", // Color of the scrollbar thumb
+            },
+            "&::-webkit-scrollbar-thumb:hover": {
+              background: "#555", // Darker thumb on hover
+              cursor: "pointer", // Ensures the thumb is draggable
+            },
+          }}
         >
           {conversations.map((_) => (
-            <Card key={_.id} style={{ 'cursor': 'pointer', ...(_.id === selectedId ? { border: '1px solid blue' } : {}) }} onClick={() => setSelected(_)}>
-              <CardBody>
-                <Text>{_.name}</Text>
-              </CardBody>
-            </Card>
+            <Flex justifyContent="space-between" key={_.id}
+              onClick={() => setSelected(_)}
+              cursor="pointer"
+              p={2} // Padding for better click area
+              mr={2}
+              borderRadius="md" // Rounded corners for a modern look
+
+              bg={
+                _.id === selectedId
+                  ? useColorModeValue("navy.200", "blue.900") // Light blue for light mode, darker blue for dark mode
+                  : "transparent"
+              }
+              border={
+                _.id === selectedId
+                  ? `1px solid ${useColorModeValue("blue.500", "blue.200")}` // Border adapts to mode
+                  : "1px solid transparent"
+              }
+              _hover={{
+                bg: useColorModeValue("gray.200", "gray.700"), // Subtle hover effect for all items
+              }}
+            >
+              <Text
+                fontSize="small"
+                fontWeight="semibold"
+              >
+                {_.name}
+              </Text>
+              <Button color="red.600" size="small" backgroundColor="transparent" onClick={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                deleteConversation(_.id);
+              }}>
+                <Icon as={FiTrash2} />
+              </Button >
+            </Flex>
           ))}
-          {/* <Links routes={routes} /> */}
         </Box>
       </Stack>
 
-      <Box mt="60px" width={"100%"} display={"flex"} justifyContent={"center"}>
+      {/* <Box mt="60px" width={"100%"} display={"flex"} justifyContent={"center"}>
         <SidebarCard />
-      </Box>
-      <APIModal setApiKey={setApiKey} sidebar={true} />
+      </Box> */}
       <Flex
         mt="8px"
         justifyContent="center"
         alignItems="center"
         boxShadow={shadowPillBar}
         borderRadius="30px"
+        width="90%"
         p="14px"
+        mb="30px"
       >
         <NextAvatar h="34px" w="34px" src={avatar4} me="10px" />
         <Text color={textColor} fontSize="xs" fontWeight="600" me="10px">
@@ -222,7 +282,7 @@ function SidebarContent(props: SidebarContent) {
           <Icon as={FiLogOut} width="16px" height="16px" color="inherit" />
         </Button>
       </Flex>
-    </Flex>
+    </Flex >
   );
 }
 

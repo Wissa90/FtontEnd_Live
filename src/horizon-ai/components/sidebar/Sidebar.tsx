@@ -29,10 +29,12 @@ export interface SidebarProps extends PropsWithChildren {
   selectedId?: number;
   [x: string]: any;
   setSelected: (conversation: Conversation) => void;
+  createConversation: () => void;
+  deleteConversation: (id: number) => void;
 }
 
 const Sidebar = (props: SidebarProps) => {
-  const { routes, setApiKey, conversations, selectedId, setSelected } = props;
+  const { routes, setApiKey, conversations, selectedId, createConversation, deleteConversation, setSelected } = props;
   // this is for the rest of the collapses
   const variantChange = "0.2s linear";
   const shadow = useColorModeValue(
@@ -75,6 +77,8 @@ const Sidebar = (props: SidebarProps) => {
             conversations={conversations}
             selectedId={selectedId}
             setSelected={setSelected}
+            createConversation={createConversation}
+            deleteConversation={deleteConversation}
           />
         </Scrollbars>
       </Box>
@@ -138,7 +142,7 @@ export function SidebarResponsive(props: { routes: IRoute[] }) {
               renderThumbVertical={renderThumb}
               renderView={renderView}
             >
-              <Content routes={routes} conversations={[]} setSelected={() => { }} />
+              <Content routes={routes} conversations={[]} setSelected={() => { }} createConversation={() => { }} deleteConversation={() => { }} />
             </Scrollbars>
           </DrawerBody>
         </DrawerContent>

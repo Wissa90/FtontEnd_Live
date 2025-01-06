@@ -13,9 +13,11 @@ type ChatLayoutProps = {
   conversations: Conversation[];
   selectedId?: number;
   setSelected: (conversation: Conversation) => void;
+  createConversation: () => void;
+  deleteConversation: (id: number) => void;
 };
 
-const ChatLayout = ({ children, conversations, selectedId, setSelected }: ChatLayoutProps) => {
+const ChatLayout = ({ children, conversations, selectedId, setSelected, createConversation, deleteConversation }: ChatLayoutProps) => {
   const location = useLocation();
   const pathname = location?.pathname || '/'; // Fallback to '/' if undefined
   const [apiKey, setApiKey] = useState('');
@@ -37,6 +39,8 @@ const ChatLayout = ({ children, conversations, selectedId, setSelected }: ChatLa
         conversations={conversations}
         selectedId={selectedId}
         setSelected={setSelected}
+        createConversation={createConversation}
+        deleteConversation={deleteConversation}
       />
       <Box
         pt={{ base: "60px", md: "100px" }}

@@ -2,7 +2,7 @@ import axios from "axios";
 import { jwtDecode } from "jwt-decode";
 import { LoginCredentials, Register } from "./auth.types";
 
-const API_URL = "https://8f8c-156-208-8-108.ngrok-free.app/api";
+const API_URL = "https://1dbf-156-174-47-128.ngrok-free.app/api";
 
 // Create axios instance with default config
 const api = axios.create({

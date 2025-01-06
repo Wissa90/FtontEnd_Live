@@ -13,15 +13,21 @@ import { MdAutoAwesome, MdKeyboardArrowDown, MdPerson } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   createConversation,
+  deleteConversation,
   getConversations,
   getMessages,
   sendMessage
 } from '../chat.api';
 import { Conversation, Message } from "../chat.types";
 import { ChatLayout } from "../components/ChatLayout";
+import { ConfirmationModal } from "../components/ConfirmationModal";
 
 const Chat = () => {
   const { id: selectedConversationIdParam } = useParams();
+  const [conversationIdToDelete, setConversationIdToDelete] = useState<number>();
+
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   const navigate = useNavigate();
 
 
@@ -76,7 +82,7 @@ const Chat = () => {
         setMessages(messages);
         scrollToBottom(true);
       });
-  }, []);
+  }, [])
 
   const scrollToBottom = (immediate = false) => {
     const scrollAction = () => {
@@ -179,11 +185,22 @@ const Chat = () => {
   }, []);
 
   return (
-    <ChatLayout conversations={conversations} selectedId={selectedConversationId} setSelected={conversation => {
-      setSelectedConversationId(conversation.id);
-      getMessages(conversation.id).then(setMessages);
-      navigate(`/chat/${conversation.id}`, { replace: true });
-    }}>
+    <ChatLayout
+      conversations={conversations}
+      selectedId={selectedConversationId}
+      setSelected={conversation => {
+        setSelectedConversationId(conversation.id);
+        getMessages(conversation.id).then(setMessages);
+        navigate(`/chat/${conversation.id}`, { replace: true });
+      }}
+      createConversation={() => {
+        setSelectedConversationId(undefined);
+        setMessages([]);
+        navigate(`/chat`, { replace: true });
+        inputRef?.current?.focus();
+      }}
+      deleteConversation={setConversationIdToDelete}
+    >
       <Flex
         w="100%"
         pt={{ base: "70px", md: "0px" }}
@@ -205,9 +222,6 @@ const Chat = () => {
           minH={{ base: "75vh", "2xl": "85vh" }}
           maxW="1000px"
         >
-
-
-
           {/* Messages Display */}
           <Flex
             ref={chatContainerRef}
@@ -330,6 +344,7 @@ const Chat = () => {
           {/* Input Area */}
           <Flex ms={{ base: "0px", xl: "60px" }} mt="20px">
             <Input
+              ref={inputRef}
               minH="54px"
               h="100%"
               border="1px solid"
@@ -376,6 +391,31 @@ const Chat = () => {
           </Flex>
         </Flex>
       </Flex>
+      {conversationIdToDelete && <ConfirmationModal
+        isOpen={true}
+        onClose={() => setConversationIdToDelete(undefined)}
+        message="Are you sure you want to delete this conversaion?"
+        confirmationText="Delete"
+        cancelText="Cancel"
+        confirm={async () => {
+          await deleteConversation(conversationIdToDelete);
+          getConversations().then(setConversations);
+          setConversationIdToDelete(undefined);
+
+          // Deleting a different conversation
+          if (conversationIdToDelete !== selectedConversationId) {
+            return;
+          }
+
+          // Deleting the currently selected conversation
+          inputRef?.current?.focus();
+          setSelectedConversationId(undefined);
+          navigate(`/chat`, { replace: true });
+          setMessages([]);
+        }}
+        confirmationVariant="destructive"
+      />}
+
     </ChatLayout>
   );
 };
